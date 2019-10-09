@@ -1,16 +1,13 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import soundfile as sf
-from glob import glob
 from scipy.fftpack import fft, ifft
 from scipy import hanning
+import soundfile as sf
 
 ################
 # def function #
 ################
 def signal_fft(signal, N, win):
-
-
     # フーリエ変換
     spectrum = fft(signal*win) # 窓関数あり
     spectrum_abs = np.abs(spectrum) # 振幅を元に信号に揃える
@@ -19,7 +16,6 @@ def signal_fft(signal, N, win):
     half_spectrum_dBV = 20*np.log10(half_spectrum)
 
     return spectrum, half_spectrum_dBV
-
 
 ####################
 # make signal data #
@@ -34,7 +30,7 @@ base_signal = amp * np.sin(2*np.pi*f*t)
 
 num = 10 #何次高調波まで見るか
 
-mode = 'even'
+mode = 'odd' # all:全ての高調波含む, even:偶数次高調波のみ, odd:奇数時高調波のみ
 
 if mode == 'all':
     start = 2
@@ -49,13 +45,18 @@ else:
         start = 3
         save_path = './figure/make_odd_non_lineardist_signal.jpg'
 
-non_lin_dist = [( 4.472 * 10**(-6)/ 2**(i-1)) * np.sin(2*np.pi*(i)*f*t) for i in range(start,num+1,step)]
+# non_lin_dist = [( 4.472 * 10**(-6)/ 2**(i-1)) * np.sin(2*np.pi*(i)*f*t) for i in range(start,num+1,step)]
+non_lin_dist = [( 100000 * 10**(-6)/ 2**(i-1)) * np.sin(2*np.pi*(i)*f*t)
+    for i in range(start,num+1,step)] #このくらいから歪みを知覚できる
 dist_signal = base_signal+sum(non_lin_dist)
 
+dist_signal = dist_signal/np.sqrt(2)
+# sf.write('./create_dist_wave/clean_signal.wav',base_signal,44100)
+sf.write('./create_dist_wave/dist_'+mode+'_signal.wav',dist_signal,44100,subtype='PCM_16') # 16bit 44.1kHz
 ##############
 # FFT & IFFT #
 ##############
-N = 1024000 #フーリエ変換長[サンプル]
+N = 44100 #フーリエ変換長[サンプル]
 L_reduce = N/fs #フーリエ音源長[s] = N/fs
 
 # 窓関数
@@ -99,4 +100,4 @@ ax[1].set_xlabel('freqency[Hz]',fontsize=18)
 ax[1].set_ylabel('amplitude[dBV]',fontsize=18)
 
 plt.show()
-fig.savefig(save_path)
+# fig.savefig(save_path)
