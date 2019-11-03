@@ -11,7 +11,7 @@ def signal_fft(signal, N, win):
     # フーリエ変換
     spectrum = fft(signal*win) # 窓関数あり
     spectrum_abs = np.abs(spectrum) # 振幅を元に信号に揃える
-    half_spectrum = spectrum_abs[:N//2+1] / (signal.shape[0] / 2)
+    half_spectrum = spectrum_abs[:N//2+1]
     half_spectrum[0] = half_spectrum[0] / 2 # 直流成分（今回は扱わないけど）は2倍不要
     half_spectrum_dBV = 20*np.log10(half_spectrum)
 
@@ -22,15 +22,15 @@ def signal_fft(signal, N, win):
 ####################
 fs = 44100
 L = 60
-f = 1019
+f = 1000
 
 t = np.arange(0,L,1/44100)
-amp = np.sqrt(2)*1 # 1Vrms = √2Vpp
+amp = 1 # 1Vrms = √2Vpp
 base_signal = amp * np.sin(2*np.pi*f*t)
 
 num = 10 #何次高調波まで見るか
 
-mode = 'odd' # all:全ての高調波含む, even:偶数次高調波のみ, odd:奇数時高調波のみ
+mode = 'all' # all:全ての高調波含む, even:偶数次高調波のみ, odd:奇数時高調波のみ
 
 if mode == 'all':
     start = 2
@@ -46,13 +46,23 @@ else:
         save_path = './figure/make_odd_non_lineardist_signal.jpg'
 
 # non_lin_dist = [( 4.472 * 10**(-6)/ 2**(i-1)) * np.sin(2*np.pi*(i)*f*t) for i in range(start,num+1,step)]
-non_lin_dist = [( 100000 * 10**(-6)/ 2**(i-1)) * np.sin(2*np.pi*(i)*f*t)
-    for i in range(start,num+1,step)] #このくらいから歪みを知覚できる
+#このくらいから歪みを知覚できる
+non_lin_dist = [( 1/ (2*(i-1))) * np.sin(2*np.pi*(i)*f*t) for i in range(start,num+1,step)]
+# non_lin_dist[0].shape
+# len(non_lin_dist)
+# plt.plot(non_lin_dist[0])
+# plt.xlim([0,100])
 dist_signal = base_signal+sum(non_lin_dist)
+dist_signal.shape
 
-dist_signal = dist_signal/np.sqrt(2)
+
+dist_signal = dist_signal/max(dist_signal)
+max(dist_signal)
 # sf.write('./create_dist_wave/clean_signal.wav',base_signal,44100)
-sf.write('./create_dist_wave/dist_'+mode+'_signal.wav',dist_signal,44100,subtype='PCM_16') # 16bit 44.1kHz
+sf.write('./dist_'+mode+'_signal.wav', dist_signal, 44100, subtype='PCM_16') # 16bit 44.1kHz
+
+dist_signal, fs = sf.read('./dist_'+mode+'_signal.wav')
+dist_signal.shape
 ##############
 # FFT & IFFT #
 ##############
