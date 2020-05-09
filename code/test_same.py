@@ -18,7 +18,7 @@ import soundfile as sf
 ####################
 fs = 44100
 L = 60
-f = 1019
+f = 1200
 
 t = np.arange(0,L,1/44100)
 amp = 1
@@ -47,6 +47,9 @@ non_lin_dist = [( 100000 * 10**(-6)/ 2**(i-1)) * np.sin(2*np.pi*(i)*f*t)
     for i in range(start,num+1,step)] #このくらいから歪みを知覚できる
 dist_signal = base_signal+sum(non_lin_dist)
 
+sf.write(f'D:/masas/Documents/Script/NonLinDistDenoise/create_dist_wave/dist_all_{f}_signal.wav',
+        dist_signal, 44100,subtype='PCM_16') # 16bit 44.1kHz
+
 
 plt.figure(1,figsize=(10,5))
 plt.plot(t,dist_signal,'r',label='distoted')
@@ -54,6 +57,8 @@ plt.plot(t,base_signal,'b',label='clean')
 plt.xlim([0,0.002])
 plt.legend()
 plt.show()
+
+dist_signal, fs = sf.read(f'D:/masas/Documents/Script/NonLinDistDenoise/create_dist_wave/dist_all_{f}_signal.wav')
 
 dist_signal.shape
 base_signal.shape
@@ -108,7 +113,7 @@ for i in range(600):
 
 predictor = np.reshape(full_prediction, (-1))
 
-sf.write(f'D:/masas/Documents/Script/NonLinDistDenoise/result_wave/Conv1D/same_{mode}_weight{in_len}_{out_len}_signal.wav',predictor,44100,subtype='PCM_16') # 16bit 44.1kHz
+sf.write(f'D:/masas/Documents/Script/NonLinDistDenoise/result_wave/Conv1D/{f}_same_{mode}_weight{in_len}_{out_len}_signal.wav',predictor,44100,subtype='PCM_16') # 16bit 44.1kHz
 
 plt.rcParams["font.size"] = 15 # 全体のフォントサイズが変更されます。
 plt.rcParams['xtick.direction'] = 'in' # x axis in
@@ -122,13 +127,15 @@ plt.figure(1)
 plt.plot(range(len(predictor)), dist_signal[start:start + len(predictor)],'r', linewidth=3, label='distoted')
 plt.plot(range(len(predictor)), base_signal[start:start + len(predictor)],'b', linewidth=3, label='clean')
 plt.plot(range(len(predictor)), predictor, 'y--', label='predict')
-plt.xlim([152,195])
+plt.xlim([100,195])
 plt.xlabel('N[sample]')
 plt.ylabel('Amplitude[V]')
 plt.legend(loc='upper right')
-plt.savefig(f'D:/masas/Documents/Script/NonLinDistDenoise/figure/Conv1D/same_{mode}_weight{in_len}_{out_len}_wave.jpg',
+plt.savefig(f'D:/masas/Documents/Script/NonLinDistDenoise/figure/Conv1D/{f}_same_{mode}_weight{in_len}_{out_len}_wave.jpg',
             bbox_inches="tight", pad_inches=0.05)
-# 179-136
+
+
+
 # plt.figure()
 # plt.plot(range(len(predictor)), dist_signal[start:start + len(predictor)],'r', linewidth=3, label='distoted')
 # plt.plot(range(len(predictor)), base_signal[start:start + len(predictor)],'b', linewidth=3, label='clean')
@@ -149,7 +156,7 @@ def signal_fft(signal, N): #FFTするsignal長と窓長Nは同じサンプル数
     return spectrum, half_spectrum_dBV
 
 # in_data = dist_signal
-path = f'D:/masas/Documents/Script/NonLinDistDenoise/create_dist_wave/dist_{mode}_signal.wav'
+path = f'D:/masas/Documents/Script/NonLinDistDenoise/create_dist_wave/dist_{mode}_{f}_signal.wav'
 # path = './dist_all_signal.wav'
 in_data,fs = sf.read(path)
 N = fs
@@ -183,7 +190,7 @@ plt.xlabel('Frequency[Hz]', fontsize=15)
 plt.ylabel('Amplitude[dB]', fontsize=15)
 plt.legend(['input(distorted)', 'output(corrected)'],loc='upper right',fontsize=15)
 # save
-plt.savefig(f'D:/masas/Documents/Script/NonLinDistDenoise/figure/Conv1D/same_{mode}_weight{in_len}_{out_len}_fft.jpg',
+plt.savefig(f'D:/masas/Documents/Script/NonLinDistDenoise/figure/Conv1D/{f}_same_{mode}_weight{in_len}_{out_len}_fft.jpg',
             bbox_inches="tight", pad_inches=0.05)
 np.where(out_half_spectrum_dBV==max(out_half_spectrum_dBV))
 np.where(in_half_spectrum_dBV==max(in_half_spectrum_dBV))
